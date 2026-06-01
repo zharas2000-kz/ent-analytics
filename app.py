@@ -246,7 +246,7 @@ file_names = ["result_ent_1.xlsx", "result_ent_2.xlsx", "result_ent_3.xlsx"]
 current_folder = os.path.dirname(os.path.abspath(__file__))
 
 # ВНИМАНИЕ: После того как создадите репозиторий на GitHub, замените 'ВАШ_НИК' и 'ИМЯ_РЕПОЗИТОРИЯ' на свои!
-github_base_url = "https://githubusercontent.com"
+github_base_url = "https://github.com/zharas2000-kz/ent-analytics"
 
 # Кнопка обновления данных
 refresh_data = st.sidebar.button("🔄 Обновить данные" if st.session_state.lang == "ru" else "🔄 Мәліметтерді жаңарту")
