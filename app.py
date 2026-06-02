@@ -94,7 +94,7 @@ st.markdown("""
 
 # --- 1. ЛОКАЛИЗАЦИЯ И ДВУХЪЯЗЫЧНЫЙ СЛОВАРЬ ---
 if "lang" not in st.session_state:
-    st.session_state.lang = "ru"
+    st.session_state.lang = "kk"
 
 st.sidebar.markdown("### 🌐 Тілді таңдау / Выбор языка")
 lang_choice = st.sidebar.radio(
