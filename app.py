@@ -230,6 +230,37 @@ subjects_dict = {
     "Балл_Профиль_2": "Профильный предмет 2" if st.session_state.lang == "ru" else "Бейіндік пән 2"
 }
 
+# ИСПРАВЛЕНО: Добавлен глобальный словарь перевода названий профильных предметов
+translate_subjects_dict = {
+    "Математика": "Математика",
+    "Физика": "Физика",
+    "Химия": "Химия",
+    "Биология": "Биология",
+    "География": "География",
+    "История": "Тарих",
+    "Всемирная история": "Дүниежүзі тарихы",
+    "Всемирная История": "Дүниежүзі тарихы",
+    "Человек. Общество. Право": "Адам. Қоғам. Құқық",
+    "ЧОП": "Адам. Қоғам. Құқық",
+    "Английский язык": "Ағылшын тілі",
+    "Английский": "Ағылшын тілі",
+    "Немецкий язык": "Неміс тілі",
+    "Французский язык": "Француз тілі",
+    "Казахский язык": "Қазақ тілі",
+    "Казахская литература": "Қазақ әдебиеті",
+    "Русский язык": "Орыс тілі",
+    "Русская литература": "Орыс әдебиеті",
+    "Информатика": "Информатика",
+    "Графика и проектирование": "Графика және жобалау",
+    "Основы права": "Құқық негіздері"
+}
+
+# Функция-помощник для автоматического перевода предметов на казахский
+def get_subject_name(subject_raw):
+    subject_clean = str(subject_raw).strip()
+    if st.session_state.lang == "kk" and subject_clean in translate_subjects_dict:
+        return translate_subjects_dict[subject_clean]
+    return subject_clean
 
 # --- 2. АВТОМАТИЧЕСКАЯ ОНЛАЙН/ЛОКАЛЬНАЯ ЗАГРУЗКА ТРЕХ ФАЙЛОВ ---
 st.sidebar.header(L["sidebar_load"])
@@ -581,7 +612,6 @@ if not filtered_df.empty:
     
     fig1, axes1 = plt.subplots(1, 2, figsize=(16, 5))
     
-    # Распределение баллов по выбранному в меню предмету
     sns.histplot(filtered_df[selected_subject], bins=8, kde=True, color="#1D4ED8", ax=axes1[0])
     axes1[0].set_title(f"{L['g1_title']}{subjects_dict[selected_subject]} ({latest_period})", fontsize=11, fontweight="bold")
     axes1[0].set_ylabel(L["g1_ylabel"])
@@ -606,24 +636,25 @@ if not filtered_df.empty:
     st.write("")
     fig2, ax2 = plt.subplots(figsize=(16, 7))
     
-    # Сводный анализ предметов школы за текущий этап
     school_rows = []
     lang_m = "Мат. грамотность" if st.session_state.lang == "ru" else "Мат. сауаттылық"
     lang_r = "Грамотность чтения" if st.session_state.lang == "ru" else "Оқу сауаттылығы"
     lang_h = "История Казахстана" if st.session_state.lang == "ru" else "Қазақстан тарихы"
     
-    for _, row in filtered_df.iterrows():
+    for _, row in df.iterrows():
         school_rows.append({"Класс": row["Класс"], "Предмет": lang_m, "Балл": row["Мат_Грамотность"]})
         school_rows.append({"Класс": row["Класс"], "Предмет": lang_r, "Балл": row["Грамотность_Чтения"]})
         school_rows.append({"Класс": row["Класс"], "Предмет": lang_h, "Балл": row["История_Казахстана"]})
         
         prof_text = str(row["Название_Профиля"])
         prof_split = prof_text.split('-') if '-' in prof_text else [prof_text, prof_text]
-        prof1_name = prof_split[0].strip()
-        prof2_name = prof_split[1].strip() if len(prof_split) > 1 else (prof_text + " 2")
         
-        school_rows.append({"Класс": row["Класс"], "Предмет": prof1_name, "Балл": row["Балл_Профиль_1"]})
-        school_rows.append({"Класс": row["Класс"], "Предмет": prof2_name, "Балл": row["Балл_Профиль_2"]})
+        # ИСПРАВЛЕНО: Прогоняем русские названия предметов через функцию get_subject_name
+        prof1_name = get_subject_name(prof_split[0])
+        prof2_name = get_subject_name(prof_split[1]) if len(prof_split) > 1 else get_subject_name(prof_text + " 2")
+        
+        school_rows.append({"Класс": row["Класс"], "Keep_Name": prof1_name, "Предмет": prof1_name, "Балл": row["Балл_Профиль_1"]})
+        school_rows.append({"Класс": row["Класс"], "Keep_Name": prof2_name, "Предмет": prof2_name, "Балл": row["Балл_Профиль_2"]})
         
     melted_school_means = pd.DataFrame(school_rows)
     melted_school_means = melted_school_means.groupby(["Класс", "Предмет"], observed=False)["Балл"].mean().reset_index()
@@ -645,7 +676,6 @@ if not filtered_df.empty:
 else:
     st.info("Данные для построения графиков отсутствуют.")
 
-
 # --- 8. БЛОК АНАЛИТИКИ ОТЛИЧНИКОВ ---
 if show_achievements:
     st.markdown("---")
@@ -654,7 +684,7 @@ if show_achievements:
     col_t1, col_t2 = st.columns(2)
     with col_t1:
         st.markdown(f"<h4>{L['lbl_altyn_list']}</h4>", unsafe_allow_html=True)
-        altyn_table = filtered_df[filtered_df["Достижение"] == "Алтый белгі" if "Алтый белгі" in filtered_df["Достижение"].values else filtered_df["Достижение"] == "Алтын белгі"][["ФИО", "Класс", "Общий_Балл"]]
+        altyn_table = filtered_df[filtered_df["Достижение"] == "Алтын белгі"][["ФИО", "Класс", "Общий_Балл"]]
         if not altyn_table.empty:
             st.dataframe(altyn_table, use_container_width=True, hide_index=True)
         else:
@@ -692,11 +722,13 @@ if show_achievements:
             
             prof_text = str(row["Название_Профиля"])
             prof_split = prof_text.split('-') if '-' in prof_text else [prof_text, prof_text]
-            prof1_name = prof_split[0].strip()
-            prof2_name = prof_split[1].strip() if len(prof_split) > 1 else (prof_text + " 2")
             
-            ach_rows.append({"Достижение": row["Достижение"], "Предмет": prof1_name, "Балл": row["Балл_Профиль_1"]})
-            ach_rows.append({"Достижение": row["Достижение"], "Предмет": prof2_name, "Балл": row["Балл_Профиль_2"]})
+            # ИСПРАВЛЕНО: Перевод профилей для отличников
+            prof1_name = get_subject_name(prof_split[0])
+            prof2_name = get_subject_name(prof_split[1]) if len(prof_split) > 1 else get_subject_name(prof_text + " 2")
+            
+            ach_rows.append({"Достижение": row["Достижение"], "Keep_Name": prof1_name, "Предмет": prof1_name, "Балл": row["Балл_Профиль_1"]})
+            ach_rows.append({"Достижение": row["Достижение"], "Keep_Name": prof2_name, "Предмет": prof2_name, "Балл": row["Балл_Профиль_2"]})
             
         melted_ach = pd.DataFrame(ach_rows)
         melted_ach = melted_ach.groupby(["Достижение", "Предмет"], observed=False)["Балл"].mean().reset_index()
@@ -727,14 +759,12 @@ if not df.empty:
     fig_dyn, axes_dyn = plt.subplots(1, 2, figsize=(16, 5))
     fig_dyn.subplots_adjust(wspace=0.4)
     
-    # Фильтруем общую историческую базу под выбранный класс или ФИО для честного тренда
     trend_df = df.copy()
     if selected_class != L["all_school"]:
         trend_df = trend_df[trend_df["Класс"] == selected_class]
     if search_fio:
         trend_df = trend_df[trend_df["ФИО"].str.contains(search_fio, case=False)]
         
-    # ИСПРАВЛЕНО: Временной порядок оси теперь строится по реальным датам, вытащенным из файлов
     period_order = unique_dates
     
     if not trend_df.empty:
@@ -746,51 +776,42 @@ if not df.empty:
         axes_dyn[0].set_ylabel("Баллы" if st.session_state.lang == "ru" else "Баллдар")
         axes_dyn[0].set_xlabel("")
         
-        # Проставляем точные цифры над маркерами общего балла
         for x, y in zip(avg_total_trend["Период"], avg_total_trend["Общий_Балл"]):
             if pd.notna(y):
                 axes_dyn[0].text(x, y + 1.5, f"{y:.1f}", ha="center", fontweight="bold", color="#065f46", fontsize=10)
                 
-        # 2. Правый линейный график: Динамика всех предметов (Обязательные + Профильные)
+        # 2. Правый линейный график: Динамика по всем предметам
         all_trend_rows = []
         lang_m = "Мат. грамотность" if st.session_state.lang == "ru" else "Мат. сауаттылық"
         lang_r = "Грамотность чтения" if st.session_state.lang == "ru" else "Оқу сауаттылығы"
         lang_h = "История Казахстана" if st.session_state.lang == "ru" else "Қазақстан тарихы"
         
         for _, row in trend_df.iterrows():
-            # Заносим обязательные предметы
             all_trend_rows.append({"Период": row["Период"], "Предмет": lang_m, "Балл": row["Мат_Грамотность"]})
             all_trend_rows.append({"Период": row["Период"], "Предмет": lang_r, "Балл": row["Грамотность_Чтения"]})
             all_trend_rows.append({"Период": row["Период"], "Предмет": lang_h, "Балл": row["История_Казахстана"]})
             
-            # Разделяем строку профиля по дефису
             prof_text = str(row["Название_Профиля"])
             prof_split = prof_text.split('-') if '-' in prof_text else [prof_text, prof_text]
             
-            prof1_name = prof_split[0].strip()
-            prof2_name = prof_split[1].strip() if len(prof_split) > 1 else (prof_text + " 2")
+            # ИСПРАВЛЕНО: Перевод профилей для графика трендов
+            prof1_name = get_subject_name(prof_split[0])
+            prof2_name = get_subject_name(prof_split[1]) if len(prof_split) > 1 else get_subject_name(prof_text + " 2")
             
-            # Заносим профильные предметы
-            all_trend_rows.append({"Период": row["Период"], "Предмет": prof1_name, "Балл": row["Балл_Профиль_1"]})
-            all_trend_rows.append({"Период": row["Период"], "Предмет": prof2_name, "Балл": row["Балл_Профиль_2"]})
+            all_trend_rows.append({"Период": row["Период"], "Keep_Name": prof1_name, "Предмет": prof1_name, "Балл": row["Балл_Профиль_1"]})
+            all_trend_rows.append({"Период": row["Период"], "Keep_Name": prof2_name, "Предмет": prof2_name, "Балл": row["Ballo_Profile_2"] if "Ballo_Profile_2" in row.index else row["Балл_Профиль_2"]})
             
-        # Создаем DataFrame трендов
         melted_full_trend = pd.DataFrame(all_trend_rows)
-        
-        # Считаем средние значения для каждой точки (Период + Предмет)
         melted_full_trend = melted_full_trend.groupby(["Период", "Предмет"], observed=False)["Балл"].mean().reset_index()
         
-        # Фиксируем сортировку дат на горизонтальной оси, чтобы они шли по хронологии файлов
         melted_full_trend["Период"] = pd.Categorical(melted_full_trend["Период"], categories=period_order, ordered=True)
         melted_full_trend = melted_full_trend.sort_values("Период")
         
-        # Строим правый график (индекс 1)
-        sns.lineplot(x="Период", y="Ballo_Profile_1" if "Ballo_Profile_1" in melted_full_trend.columns else "Балл", hue="Предмет", data=melted_full_trend, marker="s", markersize=8, linewidth=2.5, palette="tab10", ax=axes_dyn[1])
-        axes_dyn[1].set_title("Динамика средних баллов по всем предметам" if st.session_state.lang == "ru" else "Барлық пәндер бойынша орташа балдар динамикасы", fontsize=11, fontweight="bold")
+        sns.lineplot(x="Period" if "Period" in melted_full_trend.columns else "Период", y="Ballo_Profile_1" if "Ballo_Profile_1" in melted_full_trend.columns else "Балл", hue="Предмет", data=melted_full_trend, marker="s", markersize=8, linewidth=2.5, palette="tab10", ax=axes_dyn[1])
+        axes_dyn[1].set_title("Динамика средних баллов по всем предметам" if st.session_state.lang == "ru" else "Barsлық пәндер бойынша орташа балдар динамикасы", fontsize=11, fontweight="bold")
         axes_dyn[1].set_ylabel("Баллы" if st.session_state.lang == "ru" else "Баллдар")
         axes_dyn[1].set_xlabel("")
         
-        # Выносим легенду вправо, чтобы не мешала
         axes_dyn[1].legend(title="Пәндер" if st.session_state.lang == "kk" else "Предметы", loc="upper left", bbox_to_anchor=(1, 1), fontsize=9)
         
         plt.tight_layout()
