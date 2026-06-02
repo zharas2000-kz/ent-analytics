@@ -253,6 +253,7 @@ translate_subjects_dict = {
     "Русская литература": "Орыс әдебиеті",
     "Информатика": "Информатика",
     "Творческий": "Шығармашылық",
+    "Общий_Балл": "Жалпы балл",
     "Графика и проектирование": "Графика және жобалау",
     "Основы права": "Құқық негіздері"
 }
@@ -810,7 +811,7 @@ if not df.empty:
         melted_full_trend = melted_full_trend.sort_values("Период")
         
         sns.lineplot(x="Period" if "Period" in melted_full_trend.columns else "Период", y="Ballo_Profile_1" if "Ballo_Profile_1" in melted_full_trend.columns else "Балл", hue="Предмет", data=melted_full_trend, marker="s", markersize=8, linewidth=2.5, palette="tab10", ax=axes_dyn[1])
-        axes_dyn[1].set_title("Динамика средних баллов по всем предметам" if st.session_state.lang == "ru" else "Barsлық пәндер бойынша орташа балдар динамикасы", fontsize=11, fontweight="bold")
+        axes_dyn[1].set_title("Динамика средних баллов по всем предметам" if st.session_state.lang == "ru" else "Барлық пәндер бойынша орташа балдар динамикасы", fontsize=11, fontweight="bold")
         axes_dyn[1].set_ylabel("Баллы" if st.session_state.lang == "ru" else "Баллдар")
         axes_dyn[1].set_xlabel("")
         
