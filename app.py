@@ -273,16 +273,15 @@ import os
 import ssl
 import urllib.request
 
-# Имена ваших файлов
+# Жүктелетін файлдар атауы
 file_names = ["result_ent_1.xlsx", "result_ent_2.xlsx", "result_ent_3.xlsx"]
 
-# Умное определение папки, в которой находится сам запущенный файл app.py
 current_folder = os.path.dirname(os.path.abspath(__file__))
 
-# ВНИМАНИЕ: После того как создадите репозиторий на GitHub, замените 'ВАШ_НИК' и 'ИМЯ_РЕПОЗИТОРИЯ' на свои!
+# GitHub-қа сілтеме
 github_base_url = "https://github.com/zharas2000-kz/ent-analytics"
 
-# Кнопка обновления данных
+# Мәліметтерді жаңарту батырмасы
 refresh_data = st.sidebar.button("🔄 Обновить данные" if st.session_state.lang == "ru" else "🔄 Мәліметтерді жаңарту")
 
 all_dfs = []
@@ -357,7 +356,7 @@ filtered_df_base = df[df["Период"] == latest_period]
 
 
 
-# --- 3. КНОПКИ И УПРАВЛЕНИЕ НА САЙТЕ (БОКОВАЯ ПАНЕЛЬ) ---
+# --- 3. САЙТТЫ БАСҚАРУ БАТЫРМАЛАРЫ (ШЕТКІ ПАНЕЛЬ) ---
 st.sidebar.header(L["sidebar_filters"])
 search_fio = st.sidebar.text_input(L["search_fio"], "")
 
@@ -679,7 +678,7 @@ if not filtered_df.empty:
 else:
     st.info("Данные для построения графиков отсутствуют.")
 
-# --- 8. БЛОК АНАЛИТИКИ ОТЛИЧНИКОВ ---
+# --- 8. ҮЗДІКТЕР АНАЛИТИКАСЫНЫҢ БЛОГІ ---
 if show_achievements:
     st.markdown("---")
     st.markdown(f"<h2>{L['sub_ach_anal']}</h2>", unsafe_allow_html=True)
